@@ -13,3 +13,8 @@ class board():
 
     def update_resource(self):
         pass
+
+
+class Player_robot():
+    def __init__(self):
+        pass
