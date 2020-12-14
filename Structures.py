@@ -80,3 +80,8 @@ class simpl_gun(structure):
     def __init__(self):
         super(simpl_gun, self).__init__()
         pass
+
+class big_gun(simpl_gun):
+    def __init__(self):
+        super(simpl_gun, self).__init__()
+        pass
