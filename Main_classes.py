@@ -25,7 +25,7 @@ tile_images = {
     'I': load_image('I.png'),
     'R': load_image('R.png')
 }
-player_image = load_image('Glaider2.png')
+player_image = load_image('glaider.png')
 
 tile_width = 30
 tile_height = 30
