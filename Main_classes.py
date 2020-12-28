@@ -14,13 +14,21 @@ def load_image(name, colorkey=None):
 
 
 pygame.init()
-screen_size = (400, 400)
+screen_size = (900, 900)
 screen = pygame.display.set_mode(screen_size)
 FPS = 50
 
-player_image = load_image('glaider.png')
 
-tile_width = tile_height = 50
+tile_images = {
+    'A': load_image('A.png'),
+    'P': load_image('P.png'),
+    'I': load_image('I.png'),
+    'R': load_image('R.png')
+}
+player_image = load_image('Glaider2.png')
+
+tile_width = 30
+tile_height = 30
 
 
 class SpriteGroup(pygame.sprite.Group):
@@ -38,13 +46,14 @@ class Sprite(pygame.sprite.Sprite):
         self.rect = None
 
     def get_event(self, event):
+        print(0)
         pass
 
 
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(sprite_group)
-        self.image = tile_type + '.png'
+        self.image = tile_images[tile_type]
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
 
@@ -54,11 +63,14 @@ class Player(pygame.sprite.Sprite):
         super().__init__(hero_group)
         self.image = player_image
         self.rect = self.image.get_rect().move(
-            tile_width * pos_x + 15, tile_height * pos_y + 5)
+            tile_width * pos_x, tile_height * pos_y)
         self.pos = (pos_x, pos_y)
 
     def move(self, x, y):
         self.pos = (x, y)
+        self.rect = self.image.get_rect().move(
+            tile_width * x, tile_height * y)
+
 
 
 player = None
@@ -83,7 +95,7 @@ def start_screen():
     font = pygame.font.Font(None, 30)
     text_coord = 50
     for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
+        string_rendered = font.render(line, 1, pygame.Color('white'))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
@@ -115,7 +127,8 @@ def generate_level(level):
     new_player, x, y = None, None, None
     for y in range(len(level)):
         for x in range(len(level[y])):
-            Tile(level[x][y], x, y)
+
+            Tile(level[y][x], x, y)
     new_player = Player(0, 0)
     # вернем игрока, а также размер поля в клетках
     return new_player, x, y
@@ -124,17 +137,13 @@ def generate_level(level):
 def move(hero, movement):
     x, y = hero.pos
     if movement == 'up':
-        if y > 0 and level_map[y - 1][x] == '.':
-            hero.move(x, y - 1)
+        hero.move(x, y - 1)
     elif movement == 'down':
-        if y < max_y - 1 and level_map[y + 1][x] == '.':
-            hero.move(x, y + 1)
+        hero.move(x, y + 1)
     elif movement == 'left':
-        if x > 0 and level_map[y][x - 1] == '.':
-            hero.move(x - 1, y)
+        hero.move(x - 1, y)
     elif movement == 'right':
-        if y < max_x and level_map[y][x + 1] == '.':
-            hero.move(x + 1, y)
+        hero.move(x + 1, y)
 
 
 if __name__ == '__main__':
@@ -146,14 +155,18 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_w:
                     move(hero, 'up')
-                elif event.key == pygame.K_DOWN:
+                    print(1)
+                elif event.key == pygame.K_s:
                     move(hero, 'down')
-                elif event.key == pygame.K_LEFT:
+                    print(2)
+                elif event.key == pygame.K_a:
                     move(hero, 'left')
-                elif event.key == pygame.K_RIGHT:
+                    print(3)
+                elif event.key == pygame.K_d:
                     move(hero, 'right')
+                    print(4)
         screen.fill(pygame.Color('black'))
         sprite_group.draw(screen)
         hero_group.draw(screen)
