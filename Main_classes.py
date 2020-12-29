@@ -37,8 +37,10 @@ tile_height = 30
 class Board:
     def __init__(self, filename):
         filename = "data/" + filename
+        refract = {'A': 1, 'I':-1, 'T':-1, 'P': 0, 'R': 0}
         with open(filename, 'r') as mapFile:
-            level_map = [line.strip() for line in mapFile]
+            self.level_map = [line.strip() for line in mapFile]
+        self.hg_map = [[refract[x] for x in line] for line in level_map]
 
 
 class SpriteGroup(pygame.sprite.Group):
@@ -81,7 +83,13 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * x, tile_height * y)
 
-    def build(hero):
+    def put_cristal(self):
+        pass
+
+    def put_block(self):
+        pass
+
+    def delete(self):
         pass
 
 
@@ -111,6 +119,7 @@ clock = pygame.time.Clock()
 sprite_group = SpriteGroup()
 hero_group = SpriteGroup()
 blocks_group = SpriteGroup()
+enemy_group = SpriteGroup()
 
 
 def terminate():
@@ -180,7 +189,7 @@ def move(hero, movement):
 
 
 if __name__ == '__main__':
-    #board = Board()
+    board = Board('map.map')
     start_screen()
     level_map = load_level('map.map')
     hero, max_x, max_y = generate_level(level_map)
@@ -202,8 +211,8 @@ if __name__ == '__main__':
                 elif event.key == pygame.K_e:
                     hero.put_block()
                 elif event.key == pygame.K_q:
-                    hero.put_cristall
-
+                    hero.put_cristal()
+            for enem in
         screen.fill(pygame.Color('black'))
         sprite_group.draw(screen)
         hero_group.draw(screen)
