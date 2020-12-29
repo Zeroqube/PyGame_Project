@@ -23,7 +23,8 @@ tile_images = {
     'A': load_image('A.png'),
     'P': load_image('P.png'),
     'I': load_image('I.png'),
-    'R': load_image('R.png')
+    'R': load_image('R.png'),
+    'T': load_image('T.png')
 }
 #block_images = [load_image('Block.png'), load_image('Wall.png'), load_image('Gun.png'), load_image('Grade.png'),
 #                load_image('Gun_Cristal.png'), load_image('Cristal.png')]
