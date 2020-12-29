@@ -25,7 +25,9 @@ tile_images = {
     'I': load_image('I.png'),
     'R': load_image('R.png')
 }
-player_image = load_image('glaider.png')
+#block_images = [load_image('Block.png'), load_image('Wall.png'), load_image('Gun.png'), load_image('Grade.png'),
+#                load_image('Gun_Cristal.png'), load_image('Cristal.png')]
+player_image = load_image('Glaider2.png')
 
 tile_width = 30
 tile_height = 30
@@ -71,6 +73,28 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * x, tile_height * y)
 
+    def build(hero):
+        pass
+
+
+class Block(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(blocks_group)
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x, tile_height * pos_y)
+        self.contact = True
+        self.helth = 4
+        self.pos = (pos_x, pos_y)
+        self.job = 1
+        self.update()
+
+    def update(self):
+        self.image = block_images[self.job]
+        if self.job == 2:
+            self.helth = 8
+            self.contact = False
+        else:
+            self.helth = 4
 
 
 player = None
@@ -78,6 +102,7 @@ running = True
 clock = pygame.time.Clock()
 sprite_group = SpriteGroup()
 hero_group = SpriteGroup()
+blocks_group = SpriteGroup()
 
 
 def terminate():
@@ -86,9 +111,9 @@ def terminate():
 
 
 def start_screen():
-    intro_text = ["Перемещение героя", "",
+    intro_text = ["", "",
                   "",
-                  "Камера"]
+                  ""]
 
     fon = pygame.transform.scale(load_image('fon.jpg'), screen_size)
     screen.blit(fon, (0, 0))
@@ -167,6 +192,10 @@ if __name__ == '__main__':
                 elif event.key == pygame.K_d:
                     move(hero, 'right')
                     print(4)
+                elif event.key == pygame.K_SPACE:
+                    hero.build(1)
+                elif event.key == pygame.K_e:
+                    hero.build(2)
         screen.fill(pygame.Color('black'))
         sprite_group.draw(screen)
         hero_group.draw(screen)
