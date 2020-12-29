@@ -26,12 +26,19 @@ tile_images = {
     'R': load_image('R.png'),
     'T': load_image('T.png')
 }
-#block_images = [load_image('Block.png'), load_image('Wall.png'), load_image('Gun.png'), load_image('Grade.png'),
-#                load_image('Gun_Cristal.png'), load_image('Cristal.png')]
+block_images = [load_image('Block.png'), load_image('Wall.png'), load_image('Gun.png'), load_image('Grade.png')
+    , load_image('Cristal.png')]
 player_image = load_image('Glaider2.png')
 
 tile_width = 30
 tile_height = 30
+
+
+class Board:
+    def __init__(self, filename):
+        filename = "data/" + filename
+        with open(filename, 'r') as mapFile:
+            level_map = [line.strip() for line in mapFile]
 
 
 class SpriteGroup(pygame.sprite.Group):
@@ -162,17 +169,18 @@ def generate_level(level):
 
 def move(hero, movement):
     x, y = hero.pos
-    if movement == 'up':
+    if movement == 'up' and y > 0:
         hero.move(x, y - 1)
-    elif movement == 'down':
+    elif movement == 'down' and y < max_y:
         hero.move(x, y + 1)
-    elif movement == 'left':
+    elif movement == 'left' and x > 0:
         hero.move(x - 1, y)
-    elif movement == 'right':
+    elif movement == 'right' and x < max_x:
         hero.move(x + 1, y)
 
 
 if __name__ == '__main__':
+    #board = Board()
     start_screen()
     level_map = load_level('map.map')
     hero, max_x, max_y = generate_level(level_map)
@@ -183,20 +191,19 @@ if __name__ == '__main__':
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w:
                     move(hero, 'up')
-                    print(1)
                 elif event.key == pygame.K_s:
                     move(hero, 'down')
-                    print(2)
                 elif event.key == pygame.K_a:
                     move(hero, 'left')
-                    print(3)
                 elif event.key == pygame.K_d:
                     move(hero, 'right')
-                    print(4)
                 elif event.key == pygame.K_SPACE:
-                    hero.build(1)
+                    hero.delete()
                 elif event.key == pygame.K_e:
-                    hero.build(2)
+                    hero.put_block()
+                elif event.key == pygame.K_q:
+                    hero.put_cristall
+
         screen.fill(pygame.Color('black'))
         sprite_group.draw(screen)
         hero_group.draw(screen)
