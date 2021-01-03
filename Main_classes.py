@@ -16,7 +16,7 @@ def load_image(name, colorkey=None):
 pygame.init()
 screen_size = (900, 900)
 screen = pygame.display.set_mode(screen_size)
-FPS = 50
+FPS = 60
 
 
 tile_images = {
@@ -34,13 +34,48 @@ tile_width = 30
 tile_height = 30
 
 
+class Resurs(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        self.pos = (x, y)
+        super().__init__(sprite_group)
+        self.image = load_image('Resurse.png')
+        self.rect = self.image.get_rect().move(
+            tile_width * x, tile_height * y)
+
+    def kill(self):
+        super().kill()
+        board.score += 1
+
+
+class Produser:
+    def __init__(self, x, y):
+        self.pos = (x, y)
+
+    def produse(self):
+        for pos in ((-1, -1), (-1, 0), (-1, 1), (1, -1), (1, 0), (1, 1), (0, -1), (0, 1)):
+            if not board.map[pos[0]][pos[1]]:
+                board.map[pos[0]][pos[1]] = Resurs()
+                break
+
+
 class Board:
     def __init__(self, filename):
+        self.score = 0
+        self.produsers = []
         filename = "data/" + filename
         refract = {'A': 1, 'I':-1, 'T':-1, 'P': 0, 'R': 0}
         with open(filename, 'r') as mapFile:
             self.level_map = [line.strip() for line in mapFile]
         self.hg_map = [[refract[x] for x in line] for line in level_map]
+        for y in range(len(self.level_map)):
+            for x in range(len(self.level_map[y])):
+                if self.level_map[y][x] == 'I':
+                    self.produsers.append(Produser(x, y))
+        self.map = [[] * len(self.level_map) for i in range(len(self.level_map[0]))]
+
+    def produce(self):
+        for producer in self.produsers:
+            producer.produse()
 
 
 class SpriteGroup(pygame.sprite.Group):
@@ -82,6 +117,8 @@ class Player(pygame.sprite.Sprite):
         self.pos = (x, y)
         self.rect = self.image.get_rect().move(
             tile_width * x, tile_height * y)
+        if board.map[x][y]:
+            board.map[x][y].kill()
 
     def put_cristal(self):
         pass
@@ -212,7 +249,7 @@ if __name__ == '__main__':
                     hero.put_block()
                 elif event.key == pygame.K_q:
                     hero.put_cristal()
-            for enem in
+            board.produce()
         screen.fill(pygame.Color('black'))
         sprite_group.draw(screen)
         hero_group.draw(screen)
