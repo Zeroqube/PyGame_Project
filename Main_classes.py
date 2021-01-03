@@ -14,9 +14,9 @@ def load_image(name, colorkey=None):
 
 
 pygame.init()
-screen_size = (900, 900)
+screen_size = (600, 600)
 screen = pygame.display.set_mode(screen_size)
-FPS = 60
+FPS = 30
 
 
 tile_images = {
@@ -45,6 +45,7 @@ class Resurs(pygame.sprite.Sprite):
     def kill(self):
         super().kill()
         board.score += 1
+        board.map[self.pos[0]][self.pos[1]] = 0
 
 
 class Produser:
@@ -52,9 +53,9 @@ class Produser:
         self.pos = (x, y)
 
     def produse(self):
-        for pos in ((-1, -1), (-1, 0), (-1, 1), (1, -1), (1, 0), (1, 1), (0, -1), (0, 1)):
-            if not board.map[pos[0]][pos[1]]:
-                board.map[pos[0]][pos[1]] = Resurs()
+        for pos in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (1, -1), (1, 0), (1, 1), (0, 1)):
+            if not board.map[self.pos[0] + pos[0]][self.pos[1] + pos[1]]:
+                board.map[self.pos[0] + pos[0]][self.pos[1] + pos[1]] = Resurs(self.pos[0] + pos[0], self.pos[1] + pos[1])
                 break
 
 
@@ -66,12 +67,12 @@ class Board:
         refract = {'A': 1, 'I':-1, 'T':-1, 'P': 0, 'R': 0}
         with open(filename, 'r') as mapFile:
             self.level_map = [line.strip() for line in mapFile]
-        self.hg_map = [[refract[x] for x in line] for line in level_map]
+        self.hg_map = [[refract[x] for x in line] for line in self.level_map]
         for y in range(len(self.level_map)):
             for x in range(len(self.level_map[y])):
                 if self.level_map[y][x] == 'I':
                     self.produsers.append(Produser(x, y))
-        self.map = [[] * len(self.level_map) for i in range(len(self.level_map[0]))]
+        self.map = [[0] * len(self.level_map) for i in range(len(self.level_map[0]))]
 
     def produce(self):
         for producer in self.produsers:
@@ -208,7 +209,7 @@ def generate_level(level):
         for x in range(len(level[y])):
 
             Tile(level[y][x], x, y)
-    new_player = Player(0, 0)
+    new_player = Player(10, 10)
     # вернем игрока, а также размер поля в клетках
     return new_player, x, y
 
@@ -226,11 +227,15 @@ def move(hero, movement):
 
 
 if __name__ == '__main__':
+    c = 0
     board = Board('map.map')
     start_screen()
     level_map = load_level('map.map')
     hero, max_x, max_y = generate_level(level_map)
     while running:
+
+        print(board.score)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -249,7 +254,11 @@ if __name__ == '__main__':
                     hero.put_block()
                 elif event.key == pygame.K_q:
                     hero.put_cristal()
+        c += clock.get_time()
+        if c > 1200:
             board.produce()
+            c = 0
+
         screen.fill(pygame.Color('black'))
         sprite_group.draw(screen)
         hero_group.draw(screen)
