@@ -26,8 +26,8 @@ tile_images = {
     'R': load_image('R.png'),
     'T': load_image('T.png')
 }
-block_images = [load_image('Block.png'), load_image('Wall.png'), load_image('Gun.png'), load_image('Grade.png')
-    , load_image('Cristal.png')]
+block_images = [load_image('Block.png'), load_image('Cristal.png'), load_image('Wall.png'), load_image('Gun.png'),
+                load_image('Grade.png')]
 player_image = load_image('Glaider2.png')
 
 tile_width = 30
@@ -53,7 +53,7 @@ class Produser:
         self.pos = (x, y)
 
     def produse(self):
-        for pos in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (1, -1), (1, 0), (1, 1), (0, 1)):
+        for pos in ((-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1)):
             if not board.map[self.pos[0] + pos[0]][self.pos[1] + pos[1]]:
                 board.map[self.pos[0] + pos[0]][self.pos[1] + pos[1]] = Resurs(self.pos[0] + pos[0], self.pos[1] + pos[1])
                 break
@@ -68,6 +68,7 @@ class Board:
         with open(filename, 'r') as mapFile:
             self.level_map = [line.strip() for line in mapFile]
         self.hg_map = [[refract[x] for x in line] for line in self.level_map]
+        print(self.hg_map)
         for y in range(len(self.level_map)):
             for x in range(len(self.level_map[y])):
                 if self.level_map[y][x] == 'I':
@@ -94,7 +95,6 @@ class Sprite(pygame.sprite.Sprite):
         self.rect = None
 
     def get_event(self, event):
-        print(0)
         pass
 
 
@@ -118,29 +118,39 @@ class Player(pygame.sprite.Sprite):
         self.pos = (x, y)
         self.rect = self.image.get_rect().move(
             tile_width * x, tile_height * y)
+
+    def put_cristal(self):
+        x, y = self.pos
+        if not board.map[x][y] and board.hg_map[y][x] != -1 and board.score > 8:
+            board.map[x][y] = Block(x, y, 1)
+
+    def put_block(self):
+        x, y = self.pos
+        if not board.map[x][y] and board.hg_map[y][x] != -1 and board.score > 0:
+            board.map[x][y] = Block(x, y, 0)
+
+    def delete(self):
+        x, y = self.pos
         if board.map[x][y]:
             board.map[x][y].kill()
 
-    def put_cristal(self):
-        pass
-
-    def put_block(self):
-        pass
-
-    def delete(self):
-        pass
-
 
 class Block(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y):
+    def __init__(self, pos_x, pos_y, cry):
         super().__init__(blocks_group)
+        self.image = block_images[cry]
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
-        self.contact = True
+
+
         self.helth = 4
         self.pos = (pos_x, pos_y)
-        self.job = 1
-        self.update()
+        self.job = cry
+        if self.job == 1:
+            board.score -= 9
+        else:
+            board.score -= 1
+        #self.update()
 
     def update(self):
         self.image = block_images[self.job]
@@ -149,6 +159,19 @@ class Block(pygame.sprite.Sprite):
             self.contact = False
         else:
             self.helth = 4
+
+    def kill(self):
+        super().kill()
+        if self.job == 1:
+            board.score += 9
+        else:
+            board.score += 1
+        board.map[self.pos[0]][self.pos[1]] = 0
+
+    def die(self):
+        super().kill()
+        board.map[self.pos[0]][self.pos[1]] = 0
+
 
 
 player = None
@@ -234,7 +257,7 @@ if __name__ == '__main__':
     hero, max_x, max_y = generate_level(level_map)
     while running:
 
-        print(board.score)
+        print(board.score, c)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -255,13 +278,15 @@ if __name__ == '__main__':
                 elif event.key == pygame.K_q:
                     hero.put_cristal()
         c += clock.get_time()
-        if c > 1200:
+        if c > 4000:
             board.produce()
             c = 0
 
         screen.fill(pygame.Color('black'))
         sprite_group.draw(screen)
+        blocks_group.draw(screen)
         hero_group.draw(screen)
+
         clock.tick(FPS)
         pygame.display.flip()
     pygame.quit()
