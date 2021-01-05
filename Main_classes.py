@@ -34,6 +34,28 @@ tile_width = 30
 tile_height = 30
 
 
+class Enemy_1(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        self.pos = (x, y)
+        super().__init__(sprite_group)
+        self.image = load_image('Enemy1.png')
+        self.rect = self.image.get_rect().move(
+            tile_width * x, tile_height * y)
+
+    def act(self):
+        pass
+
+    def move(self):
+        pass
+
+    def suicide(self):
+        pass
+
+    def kill(self):
+        super().kill()
+        board.map[self.pos[0]][self.pos[1]] = 0
+
+
 class Resurs(pygame.sprite.Sprite):
     def __init__(self, x, y):
         self.pos = (x, y)
@@ -278,7 +300,7 @@ if __name__ == '__main__':
                 elif event.key == pygame.K_q:
                     hero.put_cristal()
         c += clock.get_time()
-        if c > 4000:
+        if c > 1000:
             board.produce()
             c = 0
 
