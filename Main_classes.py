@@ -104,7 +104,16 @@ class Board:
             producer.produse()
 
     def rebuild(self, x, y):
-        pass
+        hg = self.hg_map[y][x]
+        for cur_sprite in blocks_group.sprites():
+            p_x, p_y = cur_sprite.pos
+            if hg == self.hg_map[p_y][p_x]:
+                cur_sprite.nule()
+        for structure in range(1, 9):
+            for cur_sprite in blocks_group.sprites():
+                p_x, p_y = cur_sprite.pos
+                if hg == self.hg_map[p_y][p_x]:
+                    cur_sprite.compare(structure)
 
     def act(self):
         for cur_sprite in blocks_group.sprites():
@@ -194,6 +203,8 @@ class Block(pygame.sprite.Sprite):
         self.used = False
         self.using = False
         self.chids = []
+        self.mode = 0
+        self.type = 0
 
     def kill(self):
         super().kill()
@@ -230,6 +241,12 @@ class Block(pygame.sprite.Sprite):
             if flag:
                 break
 
+    def compare(self, structure):
+        for i in range(8):
+            #for block in blueprint[structure][i]:
+            pass
+
+
     def shoot(self):
         pass
 
@@ -250,13 +267,16 @@ def terminate():
 
 
 def start_screen():
-    intro_text = ["", "",
-                  "",
-                  ""]
+    intro_text = ["Приветствуем пилот глайдера!",
+                  "Твоя задача собрать достаточное количество ресурсов, что-бы покинуть планету",
+                  "К нашей территории подступают враги, не дай им уничтожить станцию",
+                  "Мы не сможем покинуть планету пока станция повреждена",
+                  "Придётся накопить на 10 единиц ресурсов больше, за каждую поломку",
+                  "Удачи пилот!"]
 
     fon = pygame.transform.scale(load_image('fon.jpg'), screen_size)
     screen.blit(fon, (0, 0))
-    font = pygame.font.Font(None, 30)
+    font = pygame.font.Font(None, 20)
     text_coord = 50
     for line in intro_text:
         string_rendered = font.render(line, 1, pygame.Color('white'))
