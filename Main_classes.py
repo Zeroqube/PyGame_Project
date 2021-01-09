@@ -11,7 +11,7 @@ def load_image(name, colorkey=None):
         sys.exit()
     image = pygame.image.load(fullname)
     return image
-
+#data\Picturs
 
 pygame.init()
 screen_size = (600, 600)
@@ -20,15 +20,15 @@ FPS = 30
 
 
 tile_images = {
-    'A': load_image('A.png'),
-    'P': load_image('P.png'),
-    'I': load_image('I.png'),
-    'R': load_image('R.png'),
-    'T': load_image('T.png')
+    'A': load_image('Piсturs\A.png'),
+    'P': load_image('Piсturs\P.png'),
+    'I': load_image('Piсturs\I.png'),
+    'R': load_image('Piсturs\R.png'),
+    'T': load_image('Piсturs\T.png')
 }
-block_images = [load_image('Block.png'), load_image('Cristal.png'), load_image('Wall.png'), load_image('Gun.png'),
-                load_image('Grade.png')]
-player_image = load_image('Glaider3.png')
+block_images = [load_image('Piсturs\Block.png'), load_image('Piсturs\Cristal.png'), load_image('Piсturs\Wall.png'),
+                load_image('Piсturs\Gun.png'), load_image('Piсturs\Grade.png')]
+player_image = load_image('Piсturs\Glaider3.png')
 
 tile_width = 30
 tile_height = 30
@@ -153,7 +153,7 @@ class Player(pygame.sprite.Sprite):
 
     def delete(self):
         x, y = self.pos
-        if board.map[x][y]:
+        if board.map[x][y] != 0:
             board.map[x][y].kill()
 
 
@@ -166,11 +166,15 @@ class Block(pygame.sprite.Sprite):
         self.helth = 4
         self.pos = (pos_x, pos_y)
         self.job = cry
+        self.used = False
+        self.using = False
+        self.chids = []
+
+        self.user = self.pos
         if self.job == 1:
             board.score -= 9
         else:
             board.score -= 1
-        #self.update()
 
     def kill(self):
         super().kill()
@@ -185,6 +189,8 @@ class Block(pygame.sprite.Sprite):
 
     def die(self):
         super().kill()
+        if self.used:
+            pass
         board.map[self.pos[0]][self.pos[1]] = 0
 
 
@@ -270,6 +276,9 @@ if __name__ == '__main__':
     start_screen()
     level_map = load_level('map.map')
     hero, max_x, max_y = generate_level(level_map)
+    flag_q = False
+    flag_e = False
+    flag_space = False
     while running:
 
         print(board.score, c)
@@ -277,6 +286,7 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w:
                     move(hero, 'up')
@@ -287,15 +297,27 @@ if __name__ == '__main__':
                 elif event.key == pygame.K_d:
                     move(hero, 'right')
                 elif event.key == pygame.K_SPACE:
-                    hero.delete()
+                    flag_space = True
                 elif event.key == pygame.K_e:
-                    hero.put_block()
+                    flag_e = True
                 elif event.key == pygame.K_q:
-                    hero.put_cristal()
-        c += clock.get_time()
-        if c > 1000:
+                    flag_q = True
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
+                    flag_space = False
+                elif event.key == pygame.K_e:
+                    flag_e = False
+                elif event.key == pygame.K_q:
+                    flag_q = False
+            if flag_space:
+                hero.delete()
+            elif flag_e:
+                hero.put_block()
+            elif flag_q:
+                hero.put_cristal()
+        c += 1
+        if c % FPS == 0:
             board.produce()
-            c = 0
 
         screen.fill(pygame.Color('black'))
         sprite_group.draw(screen)
