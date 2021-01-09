@@ -28,7 +28,7 @@ tile_images = {
 }
 block_images = [load_image('Block.png'), load_image('Cristal.png'), load_image('Wall.png'), load_image('Gun.png'),
                 load_image('Grade.png')]
-player_image = load_image('Glaider2.png')
+player_image = load_image('Glaider3.png')
 
 tile_width = 30
 tile_height = 30
@@ -163,8 +163,6 @@ class Block(pygame.sprite.Sprite):
         self.image = block_images[cry]
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
-
-
         self.helth = 4
         self.pos = (pos_x, pos_y)
         self.job = cry
@@ -174,16 +172,11 @@ class Block(pygame.sprite.Sprite):
             board.score -= 1
         #self.update()
 
-    def update(self):
-        self.image = block_images[self.job]
-        if self.job == 2:
-            self.helth = 8
-            self.contact = False
-        else:
-            self.helth = 4
-
     def kill(self):
         super().kill()
+        if self.used:
+            pass
+
         if self.job == 1:
             board.score += 9
         else:
