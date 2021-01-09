@@ -4,14 +4,16 @@ import sys
 
 
 def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
+    fullname = os.path.join('Picturs', name)
+    fullname = os.path.join('data', fullname)
+
     # если файл не существует, то выходим
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
     image = pygame.image.load(fullname)
     return image
-#data\Picturs
+
 
 pygame.init()
 screen_size = (600, 600)
@@ -20,15 +22,15 @@ FPS = 30
 
 
 tile_images = {
-    'A': load_image('Piсturs\A.png'),
-    'P': load_image('Piсturs\P.png'),
-    'I': load_image('Piсturs\I.png'),
-    'R': load_image('Piсturs\R.png'),
-    'T': load_image('Piсturs\T.png')
+    'A': load_image('A.png'),
+    'P': load_image('P.png'),
+    'I': load_image('I.png'),
+    'R': load_image('R.png'),
+    'T': load_image('T.png')
 }
-block_images = [load_image('Piсturs\Block.png'), load_image('Piсturs\Cristal.png'), load_image('Piсturs\Wall.png'),
-                load_image('Piсturs\Gun.png'), load_image('Piсturs\Grade.png')]
-player_image = load_image('Piсturs\Glaider3.png')
+block_images = [load_image('Block.png'), load_image('Cristal.png'), load_image('Wall.png'), load_image('Gun.png'),
+                load_image('Grade.png')]
+player_image = load_image('Glaider3.png')
 
 tile_width = 30
 tile_height = 30
@@ -83,9 +85,9 @@ class Produser:
 
 class Board:
     def __init__(self, filename):
-        self.score = 0
+        self.score = 20
         self.produsers = []
-        filename = "data/" + filename
+        filename = "data/levels/" + filename
         refract = {'A': 1, 'I':-1, 'T':-1, 'P': 0, 'R': 0}
         with open(filename, 'r') as mapFile:
             self.level_map = [line.strip() for line in mapFile]
@@ -100,6 +102,13 @@ class Board:
     def produce(self):
         for producer in self.produsers:
             producer.produse()
+
+    def rebuild(self, x, y):
+        pass
+
+    def act(self):
+        for cur_sprite in blocks_group.sprites():
+            cur_sprite.act()
 
 
 class SpriteGroup(pygame.sprite.Group):
@@ -166,9 +175,12 @@ class Block(pygame.sprite.Sprite):
         self.helth = 4
         self.pos = (pos_x, pos_y)
         self.job = cry
+
         self.used = False
         self.using = False
         self.chids = []
+        self.mode = 0
+        self.type = 0
 
         self.user = self.pos
         if self.job == 1:
@@ -176,10 +188,17 @@ class Block(pygame.sprite.Sprite):
         else:
             board.score -= 1
 
+        board.rebuild(*self.pos)
+
+    def nule(self):
+        self.used = False
+        self.using = False
+        self.chids = []
+
     def kill(self):
         super().kill()
         if self.used:
-            pass
+            board.rebuild(*self.pos)
 
         if self.job == 1:
             board.score += 9
@@ -190,8 +209,29 @@ class Block(pygame.sprite.Sprite):
     def die(self):
         super().kill()
         if self.used:
-            pass
+            board.rebuild()
         board.map[self.pos[0]][self.pos[1]] = 0
+
+    def act(self):
+        if self.using:
+            if self.type == 1:
+                self.collect()
+            elif self.type == 2:
+                self.shoot()
+
+    def collect(self):
+        flag = False
+        for i in range(-5, 6):
+            for j in range(-5, 6):
+                if type(board.map[self.pos[0] + i][self.pos[1] + j]).__name__ == 'Resurs':
+                    board.map[self.pos[0] + i][self.pos[1] + j].kill()
+                    flag = True
+                    break
+            if flag:
+                break
+
+    def shoot(self):
+        pass
 
 
 
@@ -239,7 +279,7 @@ def start_screen():
 
 
 def load_level(filename):
-    filename = "data/" + filename
+    filename = "data/levels/" + filename
     # читаем уровень, убирая символы перевода строки
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
@@ -272,9 +312,9 @@ def move(hero, movement):
 
 if __name__ == '__main__':
     c = 0
-    board = Board('map.map')
+    board = Board('1.map')
     start_screen()
-    level_map = load_level('map.map')
+    level_map = load_level('1.map')
     hero, max_x, max_y = generate_level(level_map)
     flag_q = False
     flag_e = False
@@ -316,8 +356,9 @@ if __name__ == '__main__':
             elif flag_q:
                 hero.put_cristal()
         c += 1
-        if c % FPS == 0:
+        if c % (FPS * 2) == 0:
             board.produce()
+            board.act()
 
         screen.fill(pygame.Color('black'))
         sprite_group.draw(screen)
