@@ -87,7 +87,7 @@ class Board:
     def __init__(self, filename):
         self.score = 20
         self.produsers = []
-        filename = "data/levels/" + filename
+        filename = "data/levels/" + filename + '/' + filename + '.map'
         refract = {'A': 1, 'I':-1, 'T':-1, 'P': 0, 'R': 0}
         with open(filename, 'r') as mapFile:
             self.level_map = [line.strip() for line in mapFile]
@@ -299,7 +299,7 @@ def start_screen():
 
 
 def load_level(filename):
-    filename = "data/levels/" + filename
+    filename = "data/levels/" + filename + '/' + filename + '.map'
     # читаем уровень, убирая символы перевода строки
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
@@ -332,9 +332,9 @@ def move(hero, movement):
 
 if __name__ == '__main__':
     c = 0
-    board = Board('1.map')
+    board = Board('1')
     start_screen()
-    level_map = load_level('1.map')
+    level_map = load_level('1')
     hero, max_x, max_y = generate_level(level_map)
     flag_q = False
     flag_e = False
