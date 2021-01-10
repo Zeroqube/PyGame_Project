@@ -20,7 +20,7 @@ screen_size = (600, 600)
 screen = pygame.display.set_mode(screen_size)
 FPS = 30
 
-
+bulet_image = load_image('Bulet.png')
 tile_images = {
     'A': load_image('A.png'),
     'P': load_image('P.png'),
@@ -37,7 +37,8 @@ tile_height = 30
 
 
 class Enemy_1(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, helth):
+        self.helth = helth
         self.pos = (x, y)
         super().__init__(sprite_group)
         self.image = load_image('Enemy1.png')
@@ -118,6 +119,7 @@ class Board:
     def act(self):
         for cur_sprite in blocks_group.sprites():
             cur_sprite.act()
+        for cur_sprite in 
 
 
 class SpriteGroup(pygame.sprite.Group):
@@ -173,6 +175,30 @@ class Player(pygame.sprite.Sprite):
         x, y = self.pos
         if board.map[x][y] != 0:
             board.map[x][y].kill()
+
+
+class Bulet(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y, v_x, v_y, damege, rang):
+        super(Bulet, self).__init__(bulets_group)
+        self.pos = (pos_x * tile_height, pos_y * tile_width)
+        self.st = self.pos
+        self.range = rang
+        self.velosity = (v_x, v_y)
+        self.damege = damege
+        self.image = bulet_image
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x, tile_height * pos_y)
+
+    def move(self, t):
+        self.pos = (self.pos[0] + self.velosity[0] * t, self.pos[1] + self.velosity[1] * t)
+        self.rect = self.image.get_rect().move(self.pos[0], self.pos[1])
+        if ((self.pos[0] - self.st[0]) ** 2 + (self.pos[1] - self.st[1]) ** 2) ** 0.5 > self.range:
+            self.kill()
+
+    def attac(self):
+        if type(board.map[self.pos[0] // tile_height][self.pos[1] // tile_height]).__name__ == 'Enemy_1':
+            board.map[self.pos[0] // tile_height][self.pos[1] // tile_height].helth -= self.damege
+            self.kill()
 
 
 class Block(pygame.sprite.Sprite):
@@ -259,6 +285,7 @@ sprite_group = SpriteGroup()
 hero_group = SpriteGroup()
 blocks_group = SpriteGroup()
 enemy_group = SpriteGroup()
+bulets_group = SpriteGroup()
 
 
 def terminate():
