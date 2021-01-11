@@ -16,10 +16,10 @@ def load_image(name, colorkey=None):
 
 
 pygame.init()
-screen_size = (600, 600)
+screen_size = (720, 600)
 screen = pygame.display.set_mode(screen_size)
 FPS = 30
-
+HP = load_image('HP.png')
 bulet_image = load_image('Bulet.png')
 tile_images = {
     'A': load_image('A.png'),
@@ -40,30 +40,76 @@ class Enemy_1(pygame.sprite.Sprite):
     def __init__(self, x, y, helth):
         self.helth = helth
         self.pos = (x, y)
-        super().__init__(sprite_group)
+        super().__init__(enemy_group)
         self.image = load_image('Enemy1.png')
         self.rect = self.image.get_rect().move(
             tile_width * x, tile_height * y)
 
     def act(self):
-        pass
+        self.move(self.bfs())
+        if -2 < board.pos[0] - self.pos[0] < 2 and -2 < board.pos[0] - self.pos[0] < 2:
+            self.suicide()
 
-    def move(self):
-        pass
+    def move(self, side):
+        if side == 'u':
+            board.map[self.pos[0]][self.pos[1] - 1] = Enemy_1(self.pos[0], self.pos[1] - 1, self.helth)
+            print(self.pos[0], self.pos[1] - 1)
+            self.kill()
+        if side == 'd':
+            board.map[self.pos[0]][self.pos[1] + 1] = Enemy_1(self.pos[0], self.pos[1] + 1, self.helth)
+            print(self.pos[0], self.pos[1] + 1)
+            self.kill()
+        if side == 'l':
+            board.map[self.pos[0] - 1][self.pos[1]] = Enemy_1(self.pos[0] - 1, self.pos[1], self.helth)
+            print(self.pos[0] - 1, self.pos[1])
+            self.kill()
+        if side == 'r':
+            board.map[self.pos[0] + 1][self.pos[1]] = Enemy_1(self.pos[0] + 1, self.pos[1], self.helth)
+            print(self.pos[0] + 1, self.pos[1])
+            self.kill()
 
     def suicide(self):
-        pass
+        board.helth -= 5
+        self.kill()
 
     def kill(self):
         super().kill()
         board.map[self.pos[0]][self.pos[1]] = 0
+
+    def bfs(self):
+        queue = [self.pos]
+        used = board.hg_map
+        prev = [[(i, j) for j in range(20)] for i in range(20)]
+        while queue:
+            i, j = queue.pop(0)
+            for pos in [(i, j - 1), (i, j + 1), (i - 1, j), (i + 1, j)]:
+                if (-1 < pos[0] < 20) and (-1 < pos[1] < 20):
+                    if used[pos[0]][pos[1]] == 0:
+                        queue.append(pos)
+                        prev[pos[0]][pos[1]] = (i, j)
+            used[i][j] = 1
+        i, j = board.pos
+        while prev[i][j] != self.pos:
+            i, j = prev[i][j]
+        if self.pos[0] - i == 1:
+            return 'l'
+        elif self.pos[0] - i == -1:
+            return 'r'
+        else:
+            if self.pos[1] - j == 1:
+                return 'u'
+            elif self.pos[1] - j == -1:
+                return 'd'
+
+
+resurs_image = load_image('Resurse.png')
 
 
 class Resurs(pygame.sprite.Sprite):
     def __init__(self, x, y):
         self.pos = (x, y)
         super().__init__(sprite_group)
-        self.image = load_image('Resurse.png')
+        self.image = resurs_image
         self.rect = self.image.get_rect().move(
             tile_width * x, tile_height * y)
 
@@ -86,7 +132,10 @@ class Produser:
 
 class Board:
     def __init__(self, filename):
+        self.pos = (-1, -1)
         self.score = 20
+        self.helth = 50
+        self.win_score = 100
         self.produsers = []
         filename = "data/levels/" + filename + '/' + filename + '.map'
         refract = {'A': 1, 'I':-1, 'T':-1, 'P': 0, 'R': 0}
@@ -98,6 +147,9 @@ class Board:
             for x in range(len(self.level_map[y])):
                 if self.level_map[y][x] == 'I':
                     self.produsers.append(Produser(x, y))
+                elif self.level_map == 'T':
+                    self.pos = (x, y)
+
         self.map = [[0] * len(self.level_map) for i in range(len(self.level_map[0]))]
 
     def produce(self):
@@ -119,7 +171,12 @@ class Board:
     def act(self):
         for cur_sprite in blocks_group.sprites():
             cur_sprite.act()
-        for cur_sprite in 
+        for cur_sprite in bulets_group:
+            t = clock.tick()
+            cur_sprite.move(t)
+        for cur_sprite in enemy_group:
+            cur_sprite.act()
+
 
 
 class SpriteGroup(pygame.sprite.Group):
@@ -303,7 +360,7 @@ def start_screen():
 
     fon = pygame.transform.scale(load_image('fon.jpg'), screen_size)
     screen.blit(fon, (0, 0))
-    font = pygame.font.Font(None, 20)
+    font = pygame.font.Font(None, 26)
     text_coord = 50
     for line in intro_text:
         string_rendered = font.render(line, 1, pygame.Color('white'))
@@ -366,9 +423,8 @@ if __name__ == '__main__':
     flag_q = False
     flag_e = False
     flag_space = False
+    #board.map[0][0] = Enemy_1(0, 0, 5)
     while running:
-
-        print(board.score, c)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -411,6 +467,14 @@ if __name__ == '__main__':
         sprite_group.draw(screen)
         blocks_group.draw(screen)
         hero_group.draw(screen)
+        f2 = pygame.font.SysFont("serif", 20)
+        text2 = f2.render(f"{board.score} / {board.win_score}", True, ("WHITE"))
+        screen.blit(text2, (650, 50)), screen.blit(resurs_image, (600, 50))
+
+        # Кол-во хп города
+        f3 = pygame.font.SysFont("serif", 20)
+        text3 = f3.render(f"{board.helth} / 50", True, ("WHITE"))
+        screen.blit(text3, (650, 10)), screen.blit(HP, (600, 0))
 
         clock.tick(FPS)
         pygame.display.flip()
