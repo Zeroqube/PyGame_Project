@@ -238,12 +238,12 @@ class Player(pygame.sprite.Sprite):
 
     def put_cristal(self):
         x, y = self.pos
-        if not board.map[x][y] and board.hg_map[y][x] != -1 and board.score > 8:
+        if not board.map[x][y] and board.hg_map[y][x] != -1 and board.score > 9:
             board.map[x][y] = Block(x, y, 1)
 
     def put_block(self):
         x, y = self.pos
-        if not board.map[x][y] and board.hg_map[y][x] != -1 and board.score > 0:
+        if not board.map[x][y] and board.hg_map[y][x] != -1 and board.score > 4:
             board.map[x][y] = Block(x, y, 0)
 
     def delete(self):
@@ -300,9 +300,9 @@ class Block(pygame.sprite.Sprite):
 
         self.user = self.pos
         if self.job == 1:
-            board.score -= 9
+            board.score -= 10
         else:
-            board.score -= 1
+            board.score -= 5
 
         #board.rebuild(*self.pos)
 
