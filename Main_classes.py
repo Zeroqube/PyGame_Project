@@ -1,7 +1,7 @@
 import pygame
 import os
 import sys
-
+import random
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('Picturs', name)
@@ -44,63 +44,56 @@ class Enemy_1(pygame.sprite.Sprite):
         self.image = load_image('Enemy1.png')
         self.rect = self.image.get_rect().move(
             tile_width * x, tile_height * y)
+        if -2 < board.pos[0] - self.pos[0] < 2 and -2 < board.pos[1] - self.pos[1] < 2:
+            self.suicide()
 
     def act(self):
-        self.move(self.bfs())
-        if -2 < board.pos[0] - self.pos[0] < 2 and -2 < board.pos[0] - self.pos[0] < 2:
+        self.move(board.enemy_map[self.pos[1]][self.pos[0]])
+        if -2 < board.pos[0] - self.pos[0] < 2 and -2 < board.pos[1] - self.pos[1] < 2:
             self.suicide()
 
     def move(self, side):
+        if side == 's':
+            self.move(self.find())
         if side == 'u':
+            if board.map[self.pos[0]][self.pos[1] - 1] != 0:
+                board.map[self.pos[0]][self.pos[1] - 1].die()
             board.map[self.pos[0]][self.pos[1] - 1] = Enemy_1(self.pos[0], self.pos[1] - 1, self.helth)
-            print(self.pos[0], self.pos[1] - 1)
             self.kill()
         if side == 'd':
+            if board.map[self.pos[0]][self.pos[1] + 1] != 0:
+                board.map[self.pos[0]][self.pos[1] + 1].die()
             board.map[self.pos[0]][self.pos[1] + 1] = Enemy_1(self.pos[0], self.pos[1] + 1, self.helth)
-            print(self.pos[0], self.pos[1] + 1)
             self.kill()
         if side == 'l':
+            if board.map[self.pos[0] - 1][self.pos[1]] != 0:
+                board.map[self.pos[0] - 1][self.pos[1]].die()
             board.map[self.pos[0] - 1][self.pos[1]] = Enemy_1(self.pos[0] - 1, self.pos[1], self.helth)
-            print(self.pos[0] - 1, self.pos[1])
             self.kill()
         if side == 'r':
+            if board.map[self.pos[0] + 1][self.pos[1]] != 0:
+                board.map[self.pos[0] + 1][self.pos[1]].die()
             board.map[self.pos[0] + 1][self.pos[1]] = Enemy_1(self.pos[0] + 1, self.pos[1], self.helth)
-            print(self.pos[0] + 1, self.pos[1])
             self.kill()
 
     def suicide(self):
-        board.helth -= 5
+        board.helth -= 1
+        board.win_score += 10
         self.kill()
 
     def kill(self):
         super().kill()
         board.map[self.pos[0]][self.pos[1]] = 0
 
-    def bfs(self):
-        queue = [self.pos]
-        used = board.hg_map
-        prev = [[(i, j) for j in range(20)] for i in range(20)]
-        while queue:
-            i, j = queue.pop(0)
-            for pos in [(i, j - 1), (i, j + 1), (i - 1, j), (i + 1, j)]:
-                if (-1 < pos[0] < 20) and (-1 < pos[1] < 20):
-                    if used[pos[0]][pos[1]] == 0:
-                        queue.append(pos)
-                        prev[pos[0]][pos[1]] = (i, j)
-            used[i][j] = 1
-        i, j = board.pos
-        while prev[i][j] != self.pos:
-            i, j = prev[i][j]
-        if self.pos[0] - i == 1:
-            return 'l'
-        elif self.pos[0] - i == -1:
-            return 'r'
-        else:
-            if self.pos[1] - j == 1:
-                return 'u'
-            elif self.pos[1] - j == -1:
-                return 'd'
-
+    def find(self):
+        for x in range(-1, 2):
+            for y in range(-1, 2):
+                try:
+                    side = board.enemy_map[self.pos[1] + x][self.pos[0] + y]
+                except Exception:
+                    side = '0'
+                if side != '0':
+                    return side
 
 resurs_image = load_image('Resurse.png')
 
@@ -116,6 +109,10 @@ class Resurs(pygame.sprite.Sprite):
     def kill(self):
         super().kill()
         board.score += 1
+        board.map[self.pos[0]][self.pos[1]] = 0
+
+    def die(self):
+        super().kill()
         board.map[self.pos[0]][self.pos[1]] = 0
 
 
@@ -137,17 +134,20 @@ class Board:
         self.helth = 50
         self.win_score = 100
         self.produsers = []
-        filename = "data/levels/" + filename + '/' + filename + '.map'
+        filename1 = "data/levels/" + filename + '/' + filename + '.map'
         refract = {'A': 1, 'I':-1, 'T':-1, 'P': 0, 'R': 0}
-        with open(filename, 'r') as mapFile:
+        with open(filename1, 'r') as mapFile:
             self.level_map = [line.strip() for line in mapFile]
         self.hg_map = [[refract[x] for x in line] for line in self.level_map]
-        print(self.hg_map)
+        filename2 = "data/levels/" + filename + '/' + 'enemy.map'
+        with open(filename2, 'r') as mapFile:
+            self.enemy_map = [line.strip() for line in mapFile]
         for y in range(len(self.level_map)):
             for x in range(len(self.level_map[y])):
+                print(x, y, self.level_map[y][x])
                 if self.level_map[y][x] == 'I':
                     self.produsers.append(Produser(x, y))
-                elif self.level_map == 'T':
+                elif self.level_map[y][x] == 'T':
                     self.pos = (x, y)
 
         self.map = [[0] * len(self.level_map) for i in range(len(self.level_map[0]))]
@@ -171,12 +171,11 @@ class Board:
     def act(self):
         for cur_sprite in blocks_group.sprites():
             cur_sprite.act()
-        for cur_sprite in bulets_group:
+        for cur_sprite in bulets_group.sprites():
             t = clock.tick()
             cur_sprite.move(t)
-        for cur_sprite in enemy_group:
+        for cur_sprite in enemy_group.sprites():
             cur_sprite.act()
-
 
 
 class SpriteGroup(pygame.sprite.Group):
@@ -423,7 +422,7 @@ if __name__ == '__main__':
     flag_q = False
     flag_e = False
     flag_space = False
-    #board.map[0][0] = Enemy_1(0, 0, 5)
+    board.map[19][7] = Enemy_1(19, 7, 5)
     while running:
 
         for event in pygame.event.get():
@@ -466,7 +465,9 @@ if __name__ == '__main__':
         screen.fill(pygame.Color('black'))
         sprite_group.draw(screen)
         blocks_group.draw(screen)
+        enemy_group.draw(screen)
         hero_group.draw(screen)
+
         f2 = pygame.font.SysFont("serif", 20)
         text2 = f2.render(f"{board.score} / {board.win_score}", True, ("WHITE"))
         screen.blit(text2, (650, 50)), screen.blit(resurs_image, (600, 50))
