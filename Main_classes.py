@@ -1,7 +1,7 @@
 import pygame
 import os
 import sys
-import random
+
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('Picturs', name)
@@ -54,23 +54,23 @@ class Enemy_1(pygame.sprite.Sprite):
 
     def move(self, side):
         if side == 's':
-            self.move(self.find())
+            side = self.find()
         if side == 'u':
             if board.map[self.pos[0]][self.pos[1] - 1] != 0:
                 board.map[self.pos[0]][self.pos[1] - 1].die()
             board.map[self.pos[0]][self.pos[1] - 1] = Enemy_1(self.pos[0], self.pos[1] - 1, self.helth)
             self.kill()
-        if side == 'd':
+        elif side == 'd':
             if board.map[self.pos[0]][self.pos[1] + 1] != 0:
                 board.map[self.pos[0]][self.pos[1] + 1].die()
             board.map[self.pos[0]][self.pos[1] + 1] = Enemy_1(self.pos[0], self.pos[1] + 1, self.helth)
             self.kill()
-        if side == 'l':
+        elif side == 'l':
             if board.map[self.pos[0] - 1][self.pos[1]] != 0:
                 board.map[self.pos[0] - 1][self.pos[1]].die()
             board.map[self.pos[0] - 1][self.pos[1]] = Enemy_1(self.pos[0] - 1, self.pos[1], self.helth)
             self.kill()
-        if side == 'r':
+        elif side == 'r':
             if board.map[self.pos[0] + 1][self.pos[1]] != 0:
                 board.map[self.pos[0] + 1][self.pos[1]].die()
             board.map[self.pos[0] + 1][self.pos[1]] = Enemy_1(self.pos[0] + 1, self.pos[1], self.helth)
@@ -94,6 +94,10 @@ class Enemy_1(pygame.sprite.Sprite):
                     side = '0'
                 if side != '0':
                     return side
+
+    def die(self):
+        self.kill()
+
 
 resurs_image = load_image('Resurse.png')
 
@@ -176,6 +180,12 @@ class Board:
             cur_sprite.move(t)
         for cur_sprite in enemy_group.sprites():
             cur_sprite.act()
+
+    def spawn(self):
+        for i in range(20):
+            for j in range(20):
+                if self.enemy_map[i][j] == 's':
+                    board.map[j][i] = Enemy_1(j, i, 5)
 
 
 class SpriteGroup(pygame.sprite.Group):
@@ -333,7 +343,6 @@ class Block(pygame.sprite.Sprite):
         pass
 
 
-
 player = None
 running = True
 clock = pygame.time.Clock()
@@ -461,6 +470,8 @@ if __name__ == '__main__':
         if c % (FPS * 2) == 0:
             board.produce()
             board.act()
+        if c % (FPS * 7) == 0:
+            board.spawn()
 
         screen.fill(pygame.Color('black'))
         sprite_group.draw(screen)
