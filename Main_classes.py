@@ -98,6 +98,10 @@ class Enemy_1(pygame.sprite.Sprite):
     def die(self):
         self.kill()
 
+    def chek(self):
+        if self.helth < 1:
+            self.die()
+
 
 resurs_image = load_image('Resurse.png')
 
@@ -138,6 +142,7 @@ class Board:
         self.helth = 50
         self.win_score = 100
         self.produsers = []
+        self.bulets = []
         filename1 = "data/levels/" + filename + '/' + filename + '.map'
         refract = {'A': 1, 'I':-1, 'T':-1, 'P': 0, 'R': 0}
         with open(filename1, 'r') as mapFile:
@@ -175,9 +180,13 @@ class Board:
     def act(self):
         for cur_sprite in blocks_group.sprites():
             cur_sprite.act()
+
+    def fly(self):
+        t = clock.tick() / 100
         for cur_sprite in bulets_group.sprites():
-            t = clock.tick()
             cur_sprite.move(t)
+
+    def move(self):
         for cur_sprite in enemy_group.sprites():
             cur_sprite.act()
 
@@ -257,13 +266,19 @@ class Bulet(pygame.sprite.Sprite):
 
     def move(self, t):
         self.pos = (self.pos[0] + self.velosity[0] * t, self.pos[1] + self.velosity[1] * t)
-        self.rect = self.image.get_rect().move(self.pos[0], self.pos[1])
-        if ((self.pos[0] - self.st[0]) ** 2 + (self.pos[1] - self.st[1]) ** 2) ** 0.5 > self.range:
+        self.rect = self.image.get_rect().move(int(self.pos[0]), int(self.pos[1]))
+        self.attac()
+
+        if ((self.pos[0] - self.st[0]) ** 2 + (self.pos[1] - self.st[1]) ** 2) ** 0.5 / 30 > self.range:
+            self.kill()
+        elif int(self.pos[0] / 30) > 19 or int(self.pos[1] / 30) > 19 or int(self.pos[0] / 30) < 0 \
+                or int(self.pos[1] / 30) < 0:
             self.kill()
 
     def attac(self):
-        if type(board.map[self.pos[0] // tile_height][self.pos[1] // tile_height]).__name__ == 'Enemy_1':
-            board.map[self.pos[0] // tile_height][self.pos[1] // tile_height].helth -= self.damege
+        if type(board.map[int(self.pos[0] + 15) // tile_height][int(self.pos[1] + 15) // tile_height]).__name__ == 'Enemy_1':
+            board.map[int(self.pos[0] + 15) // tile_height][int(self.pos[1] + 15) // tile_height].helth -= self.damege
+            board.map[int(self.pos[0] + 15) // tile_height][int(self.pos[1] + 15) // tile_height].chek()
             self.kill()
 
 
@@ -278,10 +293,10 @@ class Block(pygame.sprite.Sprite):
         self.job = cry
 
         self.used = False
-        self.using = False
+        self.using = True
         self.chids = []
         self.mode = 0
-        self.type = 0
+        self.type = self.job + 1
 
         self.user = self.pos
         if self.job == 1:
@@ -289,7 +304,7 @@ class Block(pygame.sprite.Sprite):
         else:
             board.score -= 1
 
-        board.rebuild(*self.pos)
+        #board.rebuild(*self.pos)
 
     def nule(self):
         self.used = False
@@ -301,7 +316,8 @@ class Block(pygame.sprite.Sprite):
     def kill(self):
         super().kill()
         if self.used:
-            board.rebuild(*self.pos)
+            pass
+            #board.rebuild(*self.pos)
 
         if self.job == 1:
             board.score += 9
@@ -338,9 +354,15 @@ class Block(pygame.sprite.Sprite):
             #for block in blueprint[structure][i]:
             pass
 
-
     def shoot(self):
-        pass
+        for i in range(-4, 5):
+            for j in range(-4, 5):
+                if (i ** 2 + j ** 2) ** 0.5 <= 6 and - 1 < self.pos[0] + i < 20 and 1 < self.pos[1] + j < 20:
+                    if type(board.map[self.pos[0] + i][self.pos[1] + j]).__name__ == 'Enemy_1':
+                        v_x = i / ((i ** 2 + j ** 2) ** 0.5) * 180
+                        v_y = j / ((i ** 2 + j ** 2) ** 0.5) * 180
+                        board.bulets.append(Bulet(self.pos[0], self.pos[1], v_x, v_y, 5, 4))
+                        return
 
 
 player = None
@@ -469,14 +491,18 @@ if __name__ == '__main__':
         c += 1
         if c % (FPS * 2) == 0:
             board.produce()
+            board.move()
             board.act()
-        if c % (FPS * 7) == 0:
+
+        if c % (FPS * 10) == 0:
             board.spawn()
+        board.fly()
 
         screen.fill(pygame.Color('black'))
         sprite_group.draw(screen)
         blocks_group.draw(screen)
         enemy_group.draw(screen)
+        bulets_group.draw(screen)
         hero_group.draw(screen)
 
         f2 = pygame.font.SysFont("serif", 20)
